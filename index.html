@@ -1,0 +1,1693 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Myriam Thabet — Now Playing</title>
+  <meta name="description" content="Spotify-inspired playful portfolio for Myriam Thabet." />
+  <style>
+    :root{
+      --bg: #0b0b10;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.085);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.66);
+      --faint: rgba(255,255,255,.45);
+      --line: rgba(255,255,255,.10);
+      --chip: rgba(255,255,255,.08);
+      --shadow: 0 16px 60px rgba(0,0,0,.55);
+      --accent: #1ed760; /* Spotify-ish green */
+      --accent2: #58a6ff;
+      --warn: #ff5b5b;
+      --radius: 18px;
+      --radius2: 26px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --blur: blur(14px);
+      --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.10'/%3E%3C/svg%3E");
+    }
+
+    /* Focus mode */
+    [data-mode="focus"]{
+      --bg: #07080a;
+      --panel: rgba(255,255,255,.05);
+      --panel2: rgba(255,255,255,.07);
+      --text: rgba(255,255,255,.90);
+      --muted: rgba(255,255,255,.62);
+      --faint: rgba(255,255,255,.40);
+      --line: rgba(255,255,255,.10);
+      --chip: rgba(255,255,255,.07);
+      --blur: blur(10px);
+    }
+
+    /* Fun mode: slightly louder */
+    [data-mode="fun"]{
+      --accent: #1ed760;
+      --accent2: #a855f7;
+      --panel: rgba(255,255,255,.07);
+      --panel2: rgba(255,255,255,.10);
+    }
+
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 5%, rgba(30,215,96,.22), transparent 55%),
+        radial-gradient(900px 500px at 85% 10%, rgba(168,85,247,.18), transparent 55%),
+        radial-gradient(800px 500px at 70% 80%, rgba(88,166,255,.16), transparent 60%),
+        linear-gradient(180deg, #0b0b10, #07070a 70%, #06060a);
+      overflow:hidden;
+    }
+
+    /* Subtle noise overlay */
+    body::before{
+      content:"";
+      position:fixed; inset:0;
+      background-image: var(--noise);
+      pointer-events:none;
+      mix-blend-mode: overlay;
+      opacity:.35;
+    }
+
+    a{ color: inherit; text-decoration: none; }
+    .kbd{
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 2px 8px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--muted);
+      background: rgba(255,255,255,.03);
+    }
+
+    /* Layout */
+    .app{
+      height: 100%;
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: 1fr 92px;
+      grid-template-areas:
+        "sidebar main"
+        "player  player";
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .sidebar{
+      grid-area: sidebar;
+      border-radius: var(--radius2);
+      background: rgba(0,0,0,.35);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      overflow:hidden;
+      display:flex;
+      flex-direction: column;
+      min-height:0;
+    }
+
+    .main{
+      grid-area: main;
+      border-radius: var(--radius2);
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      overflow:hidden;
+      display:flex;
+      flex-direction: column;
+      min-height:0;
+      position:relative;
+    }
+
+    .player{
+      grid-area: player;
+      border-radius: var(--radius2);
+      background: rgba(0,0,0,.50);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      padding: 12px 14px;
+      gap: 14px;
+      position:relative;
+    }
+
+    /* Sidebar content */
+    .sb-top{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .dot{
+      width: 12px; height:12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(30,215,96,.10);
+    }
+    .brand small{
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .sb-nav{
+      padding: 10px 10px 6px;
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .nav-item{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 10px 10px;
+      border-radius: 14px;
+      color: var(--muted);
+      transition: .15s ease;
+      cursor:pointer;
+      user-select:none;
+    }
+    .nav-item:hover{
+      background: var(--panel);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+    .nav-item.active{
+      background: linear-gradient(90deg, rgba(30,215,96,.16), rgba(255,255,255,0));
+      border: 1px solid rgba(30,215,96,.25);
+      color: var(--text);
+    }
+    .icon{
+      width: 18px; height: 18px;
+      display:inline-grid;
+      place-items:center;
+      opacity:.95;
+    }
+
+    .sb-section-title{
+      padding: 12px 14px 8px;
+      color: var(--faint);
+      font-size: 12px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+    }
+
+    .playlists{
+      padding: 0 10px 10px;
+      overflow:auto;
+      min-height:0;
+    }
+    .playlist{
+      padding: 10px 10px;
+      border-radius: 14px;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      cursor:pointer;
+      transition:.15s ease;
+      color: var(--muted);
+      border: 1px solid transparent;
+    }
+    .playlist:hover{
+      background: var(--panel);
+      color: var(--text);
+      border-color: var(--line);
+    }
+    .pl-art{
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(30,215,96,.9), transparent 55%),
+        radial-gradient(circle at 70% 60%, rgba(168,85,247,.8), transparent 60%),
+        rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 10px 22px rgba(0,0,0,.30);
+      flex: 0 0 auto;
+    }
+    .pl-meta{
+      display:flex;
+      flex-direction: column;
+      min-width:0;
+    }
+    .pl-meta strong{
+      font-size: 14px;
+      color: var(--text);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .pl-meta span{
+      font-size: 12px;
+      color: var(--faint);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sb-bottom{
+      padding: 10px 14px 14px;
+      border-top: 1px solid var(--line);
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+    }
+    .mode-toggle{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      cursor:pointer;
+      color: var(--muted);
+      transition:.15s ease;
+      user-select:none;
+    }
+    .mode-toggle:hover{ transform: translateY(-1px); color: var(--text); }
+    .pill{
+      height: 18px; width: 34px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      position:relative;
+      flex: 0 0 auto;
+    }
+    .pill::after{
+      content:"";
+      width: 14px; height:14px;
+      border-radius: 50%;
+      background: var(--accent);
+      position:absolute;
+      top: 1px; left: 2px;
+      transition: .18s ease;
+      box-shadow: 0 0 0 6px rgba(30,215,96,.12);
+    }
+    [data-mode="fun"] .pill::after{ left: 16px; background: var(--accent2); box-shadow: 0 0 0 6px rgba(168,85,247,.14); }
+
+    .hint{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      color: var(--faint);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+
+    /* Main top bar */
+    .topbar{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+      background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.10));
+    }
+    .search{
+      flex: 1;
+      max-width: 540px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      transition:.15s ease;
+    }
+    .search:focus-within{
+      border-color: rgba(30,215,96,.40);
+      box-shadow: 0 0 0 5px rgba(30,215,96,.12);
+      color: var(--text);
+    }
+    .search input{
+      width:100%;
+      border:0;
+      outline:0;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .actions{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+    }
+    .btn{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      padding: 10px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      transition:.15s ease;
+      user-select:none;
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      font-weight: 650;
+      letter-spacing:.1px;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      color: var(--text);
+      background: rgba(255,255,255,.06);
+    }
+    .btn.primary{
+      background: rgba(30,215,96,.16);
+      border-color: rgba(30,215,96,.30);
+      color: var(--text);
+    }
+    .btn.primary:hover{
+      background: rgba(30,215,96,.24);
+    }
+
+    /* Main content */
+    .content{
+      padding: 16px 14px 14px;
+      overflow:auto;
+      min-height:0;
+    }
+
+    .hero{
+      border-radius: var(--radius2);
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(700px 350px at 20% 0%, rgba(30,215,96,.22), transparent 55%),
+        radial-gradient(680px 320px at 80% 10%, rgba(168,85,247,.18), transparent 60%),
+        rgba(255,255,255,.03);
+      padding: 18px 16px;
+      display:flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero-left{
+      max-width: 760px;
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.25);
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .tag b{ color: var(--text); }
+    .title{
+      font-size: 34px;
+      line-height: 1.08;
+      margin: 4px 0 10px;
+      letter-spacing: -0.6px;
+    }
+    .subtitle{
+      margin:0 0 14px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+      max-width: 680px;
+    }
+    .hero-cta{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .hero-right{
+      min-width: 220px;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items:flex-end;
+    }
+    .mini-card{
+      width: 240px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.20);
+      padding: 12px;
+    }
+    .mini-card h4{
+      margin:0 0 6px;
+      font-size: 13px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+    .mini-card p{
+      margin:0;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .section{
+      margin-top: 14px;
+      border-radius: var(--radius2);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      overflow:hidden;
+    }
+    .section-head{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      background: rgba(0,0,0,.20);
+    }
+    .section-head h3{
+      margin:0;
+      font-size: 14px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--faint);
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+    .section-head .count{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--faint);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
+
+    /* Tracklist */
+    .tracks{
+      width:100%;
+      border-collapse: collapse;
+    }
+    .tracks th, .tracks td{
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      vertical-align: middle;
+      font-size: 14px;
+    }
+    .tracks thead th{
+      font-size: 12px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--faint);
+      background: rgba(0,0,0,.16);
+      position: sticky;
+      top: 0;
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      z-index: 2;
+    }
+    .tracks tbody tr{
+      cursor:pointer;
+      transition: .12s ease;
+    }
+    .tracks tbody tr:hover{
+      background: rgba(255,255,255,.04);
+    }
+    .tracks .idx{
+      width: 54px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+    .track-title{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .t-art{
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      display:grid;
+      place-items:center;
+      flex: 0 0 auto;
+      position:relative;
+      overflow:hidden;
+    }
+    .t-art::before{
+      content:"";
+      position:absolute; inset:-20%;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(30,215,96,.8), transparent 60%),
+        radial-gradient(circle at 70% 60%, rgba(168,85,247,.65), transparent 65%);
+      transform: rotate(12deg);
+      opacity:.9;
+    }
+    .t-meta{
+      display:flex;
+      flex-direction: column;
+      min-width:0;
+    }
+    .t-meta strong{
+      white-space:nowrap; overflow:hidden; text-overflow: ellipsis;
+    }
+    .t-meta span{
+      color: var(--faint);
+      font-size: 12px;
+      white-space:nowrap; overflow:hidden; text-overflow: ellipsis;
+    }
+    .chips{
+      display:flex;
+      gap: 6px;
+      flex-wrap:wrap;
+      justify-content: flex-end;
+    }
+    .chip{
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--chip);
+      border: 1px solid rgba(255,255,255,.08);
+      padding: 4px 8px;
+      border-radius: 999px;
+      white-space:nowrap;
+    }
+    .dur{
+      width: 80px;
+      text-align:right;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    /* Drawer (Queue / Contact) */
+    .drawer{
+      position:absolute;
+      top: 12px;
+      right: 12px;
+      width: min(420px, calc(100% - 24px));
+      border-radius: var(--radius2);
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.70);
+      box-shadow: 0 24px 80px rgba(0,0,0,.60);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      transform: translateY(-10px);
+      opacity:0;
+      pointer-events:none;
+      transition: .18s ease;
+      overflow:hidden;
+      z-index: 50;
+    }
+    .drawer.open{
+      transform: translateY(0);
+      opacity:1;
+      pointer-events:auto;
+    }
+    .drawer-head{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+    }
+    .drawer-head h4{
+      margin:0;
+      font-size: 13px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+    .drawer-body{
+      padding: 12px 14px 14px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .drawer-close{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      padding: 8px 10px;
+      border-radius: 999px;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .drawer-close:hover{ color: var(--text); transform: translateY(-1px); }
+
+    .list{
+      margin: 10px 0 0;
+      padding: 0;
+      list-style:none;
+      display:flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .list li{
+      padding: 10px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+      display:flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items:center;
+    }
+    .list b{ color: var(--text); }
+    .list span{ color: var(--faint); font-family: var(--mono); font-size: 12px; }
+
+    /* Player */
+    .now{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      min-width: 260px;
+    }
+    .cover{
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(30,215,96,.8), transparent 60%),
+        radial-gradient(circle at 70% 60%, rgba(168,85,247,.65), transparent 65%),
+        rgba(255,255,255,.06);
+      box-shadow: 0 12px 22px rgba(0,0,0,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .meta{
+      min-width:0;
+      display:flex;
+      flex-direction: column;
+    }
+    .meta strong{
+      white-space:nowrap; overflow:hidden; text-overflow: ellipsis;
+      letter-spacing: -.2px;
+    }
+    .meta span{
+      color: var(--faint);
+      font-size: 12px;
+      white-space:nowrap; overflow:hidden; text-overflow: ellipsis;
+    }
+
+    .controls{
+      flex: 1;
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      gap: 8px;
+      min-width: 260px;
+    }
+    .ctrl-row{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+    .ctrl{
+      width: 38px; height:38px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      transition:.15s ease;
+      color: var(--muted);
+      user-select:none;
+    }
+    .ctrl:hover{ transform: translateY(-1px); color: var(--text); background: rgba(255,255,255,.06); }
+    .ctrl.play{
+      width: 46px; height:46px;
+      background: rgba(30,215,96,.16);
+      border-color: rgba(30,215,96,.30);
+      color: var(--text);
+    }
+    .ctrl.play:hover{ background: rgba(30,215,96,.24); }
+
+    .bar{
+      width: min(640px, 100%);
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    .progress{
+      flex: 1;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      position:relative;
+      overflow:hidden;
+      cursor:pointer;
+    }
+    .progress > i{
+      position:absolute; left:0; top:0; bottom:0;
+      width: 35%;
+      background: linear-gradient(90deg, var(--accent), rgba(255,255,255,.25));
+      border-radius: 999px;
+      box-shadow: 0 0 0 6px rgba(30,215,96,.12);
+    }
+
+    .right-controls{
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap: 10px;
+      min-width: 260px;
+    }
+    .vol{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      color: var(--muted);
+    }
+    .volbar{
+      width: 120px; height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      position:relative;
+      overflow:hidden;
+      cursor:pointer;
+    }
+    .volbar i{
+      position:absolute; left:0; top:0; bottom:0;
+      width: 60%;
+      background: rgba(255,255,255,.30);
+      border-radius: 999px;
+    }
+
+    /* Equalizer */
+    .eq{
+      width: 22px; height: 18px;
+      display:flex;
+      gap: 3px;
+      align-items:flex-end;
+      margin-left: 2px;
+    }
+    .eq span{
+      width: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      opacity:.9;
+      height: 4px;
+      animation: bounce 700ms infinite ease-in-out;
+    }
+    .eq span:nth-child(2){ animation-delay: 120ms; }
+    .eq span:nth-child(3){ animation-delay: 240ms; }
+    .eq.paused span{ animation-play-state: paused; opacity:.45; }
+    @keyframes bounce{
+      0%,100%{ height: 4px; }
+      50%{ height: 16px; }
+    }
+
+    /* Toast */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 110px;
+      transform: translateX(-50%) translateY(8px);
+      opacity:0;
+      pointer-events:none;
+      transition: .18s ease;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.75);
+      color: var(--text);
+      padding: 10px 12px;
+      box-shadow: 0 20px 70px rgba(0,0,0,.55);
+      font-size: 13px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      z-index: 999;
+    }
+    .toast.show{
+      opacity:1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast .bubble{
+      width: 10px; height:10px; border-radius:50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(30,215,96,.12);
+    }
+
+    /* Responsive */
+    @media (max-width: 980px){
+      body{ overflow:auto; }
+      .app{
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr 92px;
+        grid-template-areas:
+          "sidebar"
+          "main"
+          "player";
+      }
+      .sidebar{ height: 360px; }
+      .hero{ flex-direction: column; }
+      .hero-right{ align-items:flex-start; }
+      .mini-card{ width: 100%; }
+      .now, .right-controls{ min-width: 0; }
+      .bar{ width: 100%; }
+    }
+
+    /* Tiny helper: hide scrollbars but keep scroll */
+    .content::-webkit-scrollbar, .playlists::-webkit-scrollbar{ width: 10px; }
+    .content::-webkit-scrollbar-thumb, .playlists::-webkit-scrollbar-thumb{
+      background: rgba(255,255,255,.10);
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,.0);
+      background-clip: padding-box;
+    }
+  </style>
+</head>
+
+<body data-mode="focus">
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" aria-label="Sidebar">
+      <div class="sb-top">
+        <div class="brand">
+          <span class="dot"></span>
+          <div>
+            <div>Myriam Thabet</div>
+            <small>Now Playing: Portfolio</small>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sb-nav" aria-label="Primary navigation">
+        <div class="nav-item active" data-jump="home">
+          <span class="icon">⌂</span><span>Home</span>
+        </div>
+        <div class="nav-item" data-jump="tracks">
+          <span class="icon">♪</span><span>Tracks</span>
+        </div>
+        <div class="nav-item" data-jump="liner">
+          <span class="icon">✎</span><span>Liner Notes</span>
+        </div>
+        <div class="nav-item" data-jump="contact">
+          <span class="icon">✉</span><span>Contact</span>
+        </div>
+      </nav>
+
+      <div class="sb-section-title">
+        <span>Playlists</span>
+        <span class="kbd">/</span>
+      </div>
+
+      <div class="playlists" id="playlistList" aria-label="Playlists">
+        <div class="playlist" data-playlist="selected">
+          <div class="pl-art"></div>
+          <div class="pl-meta">
+            <strong>Selected Work</strong>
+            <span>3 tracks • curated</span>
+          </div>
+        </div>
+        <div class="playlist" data-playlist="about">
+          <div class="pl-art"></div>
+          <div class="pl-meta">
+            <strong>About Me</strong>
+            <span>short bio • fun facts</span>
+          </div>
+        </div>
+        <div class="playlist" data-playlist="xp">
+          <div class="pl-art"></div>
+          <div class="pl-meta">
+            <strong>Experience</strong>
+            <span>timeline • highlights</span>
+          </div>
+        </div>
+        <div class="playlist" data-playlist="secret">
+          <div class="pl-art"></div>
+          <div class="pl-meta">
+            <strong>Hidden Track</strong>
+            <span>press <span class="kbd">K</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sb-bottom">
+        <div class="mode-toggle" id="modeToggle" title="Toggle Focus/Fun">
+          <div class="pill" aria-hidden="true"></div>
+          <div>
+            <div style="font-weight:750; color: var(--text); font-size:13px;">Focus / Fun</div>
+            <div style="font-size:12px; color: var(--faint);">toggle vibe</div>
+          </div>
+        </div>
+        <div class="hint">
+          <span class="kbd">?</span>
+          <span>shortcuts</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main" aria-label="Main">
+      <div class="topbar">
+        <div class="search" title="Search tracks (type and hit Enter)">
+          <span class="icon">⌕</span>
+          <input id="searchInput" placeholder="Search: segmentation, forecasting, personalization…" aria-label="Search" />
+        </div>
+        <div class="actions">
+          <button class="btn" id="queueBtn" title="Open queue (Q)">
+            <span>Queue</span> <span class="kbd">Q</span>
+          </button>
+          <button class="btn primary" id="resumeBtn" title="Open resume link">
+            <span>Resume</span> <span class="kbd">R</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="content" id="content">
+        <!-- Hero -->
+        <section class="hero" id="home">
+          <div class="hero-left">
+            <div class="tag">
+              <span class="eq" id="heroEq" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </span>
+              <span><b>Now Playing</b> • Myriam Thabet</span>
+            </div>
+
+            <h1 class="title">Applied ML + product experiments, with a soft spot for personalization.</h1>
+            <p class="subtitle">
+              MSc Business Analytics (Computational Intelligence) student in Amsterdam.
+              Work focuses on user behavior, clustering, forecasting, and ML-driven decision support in a mobility platform.
+              This page is the fun version of the PDF.
+            </p>
+
+            <div class="hero-cta">
+              <button class="btn primary" data-jump="tracks">Play Selected Work</button>
+              <button class="btn" data-jump="liner">Read Liner Notes</button>
+              <button class="btn" data-jump="contact">Say Hi</button>
+            </div>
+
+            <div style="margin-top:12px; color: var(--faint); font-size:12px;">
+              Try: <span class="kbd">Space</span> play/pause • <span class="kbd">N</span> next • <span class="kbd">/</span> playlists • <span class="kbd">?</span> help
+            </div>
+          </div>
+
+          <div class="hero-right">
+            <div class="mini-card">
+              <h4>Status</h4>
+              <p><span style="color:var(--text);font-weight:750;">Currently:</span> Data Scientist (Working Student) @ Check Technologies</p>
+            </div>
+            <div class="mini-card">
+              <h4>Vibe</h4>
+              <p id="vibeLine">Debugging, then going for a walk.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tracks -->
+        <section class="section" id="tracks" style="margin-top:14px;">
+          <div class="section-head">
+            <h3>Tracks</h3>
+            <div class="count" id="trackCount">03</div>
+          </div>
+
+          <table class="tracks" aria-label="Track list">
+            <thead>
+              <tr>
+                <th class="idx">#</th>
+                <th>Title</th>
+                <th style="text-align:right;">Tags</th>
+                <th class="dur">Time</th>
+              </tr>
+            </thead>
+            <tbody id="trackBody"></tbody>
+          </table>
+        </section>
+
+        <!-- Liner notes -->
+        <section class="section" id="liner">
+          <div class="section-head">
+            <h3>Liner Notes</h3>
+            <div class="count">∞</div>
+          </div>
+          <div style="padding: 14px;">
+            <div style="display:grid; grid-template-columns: 1.2fr .8fr; gap: 12px;">
+              <div style="border:1px solid var(--line); border-radius: var(--radius2); background: rgba(0,0,0,.16); padding: 14px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                  <div style="font-weight:850; letter-spacing:-.2px; font-size:16px;">A tiny philosophy</div>
+                  <div class="chip">no secrets spilled</div>
+                </div>
+                <p style="color: var(--muted); line-height:1.7; margin:10px 0 0;">
+                  Favorite problems live in the messy middle: ambiguous questions, imperfect data, and humans who don’t behave like clean labels.
+                  Building something useful usually means iterating on features, evaluation, and communication until a result becomes actionable.
+                </p>
+
+                <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+                  <span class="chip">clustering with meaning</span>
+                  <span class="chip">validation & sanity checks</span>
+                  <span class="chip">relevance vs diversity</span>
+                  <span class="chip">product constraints</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid var(--line); border-radius: var(--radius2); background: rgba(0,0,0,.16); padding: 14px;">
+                <div style="font-weight:850; letter-spacing:-.2px; font-size:16px;">Quick facts</div>
+                <ul style="margin:10px 0 0; padding-left: 18px; color: var(--muted); line-height:1.75;">
+                  <li>Usually starts mornings with a podcast.</li>
+                  <li>Enjoys making dashboards feel like interfaces.</li>
+                  <li>Learning Korean (slowly, stubbornly).</li>
+                  <li>Likes experiments more than perfection.</li>
+                </ul>
+                <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+                  <button class="btn" id="randomVibeBtn">Shuffle vibe</button>
+                  <button class="btn" id="confettiBtn">Tiny chaos</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Contact -->
+        <section class="section" id="contact">
+          <div class="section-head">
+            <h3>Contact</h3>
+            <div class="count">OK</div>
+          </div>
+          <div style="padding: 14px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div style="border:1px solid var(--line); border-radius: var(--radius2); background: rgba(0,0,0,.16); padding: 14px;">
+                <div style="font-weight:850; font-size:16px;">Say hi</div>
+                <p style="margin:10px 0 0; color: var(--muted); line-height:1.7;">
+                  Open to conversations about applied ML, personalization-style problems, and building prototypes that survive real constraints.
+                </p>
+                <div style="margin-top:12px; display:flex; gap: 10px; flex-wrap: wrap;">
+                  <a class="btn primary" href="mailto:thabetmyr@gmail.com">Email</a>
+                  <a class="btn" target="_blank" rel="noreferrer" href="https://www.linkedin.com/in/myriam-thabet-772a3a229">LinkedIn</a>
+                  <!-- Optional: add GitHub -->
+                  <!-- <a class="btn" target="_blank" rel="noreferrer" href="https://github.com/USERNAME">GitHub</a> -->
+                </div>
+                <div style="margin-top:10px; color: var(--faint); font-size:12px;">
+                  Tip: press <span class="kbd">R</span> to open resume link.
+                </div>
+              </div>
+
+              <div style="border:1px solid var(--line); border-radius: var(--radius2); background: rgba(0,0,0,.16); padding: 14px;">
+                <div style="font-weight:850; font-size:16px;">Site controls</div>
+                <ul style="margin:10px 0 0; padding-left: 18px; color: var(--muted); line-height:1.8;">
+                  <li><span class="kbd">Space</span> play/pause</li>
+                  <li><span class="kbd">N</span> next track</li>
+                  <li><span class="kbd">P</span> previous track</li>
+                  <li><span class="kbd">Q</span> queue</li>
+                  <li><span class="kbd">/</span> playlists drawer</li>
+                  <li><span class="kbd">?</span> help toast</li>
+                </ul>
+                <div style="margin-top:12px; display:flex; gap: 10px; flex-wrap: wrap;">
+                  <button class="btn" id="copyEmailBtn">Copy email</button>
+                  <button class="btn" id="copyLinkBtn">Copy LinkedIn</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div style="height: 18px;"></div>
+      </div>
+
+      <!-- Drawer -->
+      <div class="drawer" id="drawer" aria-label="Drawer">
+        <div class="drawer-head">
+          <h4 id="drawerTitle">Queue</h4>
+          <button class="drawer-close" id="drawerClose">Close</button>
+        </div>
+        <div class="drawer-body" id="drawerBody"></div>
+      </div>
+    </main>
+
+    <!-- Player -->
+    <footer class="player" aria-label="Player">
+      <div class="now">
+        <div class="cover" aria-hidden="true"></div>
+        <div class="meta">
+          <strong id="nowTitle">Track 01 — Segmentation That Means Something</strong>
+          <span id="nowArtist">Myriam Thabet • Selected Work</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-row">
+          <div class="ctrl" id="prevBtn" title="Previous (P)">⟲</div>
+          <div class="ctrl play" id="playBtn" title="Play/Pause (Space)">▶</div>
+          <div class="ctrl" id="nextBtn" title="Next (N)">⟳</div>
+          <div class="ctrl" id="likeBtn" title="Like (L)">♡</div>
+        </div>
+        <div class="bar">
+          <span id="timeNow">0:42</span>
+          <div class="progress" id="progress">
+            <i id="progressFill"></i>
+          </div>
+          <span id="timeEnd">3:30</span>
+        </div>
+      </div>
+
+      <div class="right-controls">
+        <div class="vol" title="Volume">
+          <span>🔊</span>
+          <div class="volbar" id="volbar"><i id="volFill"></i></div>
+        </div>
+        <button class="btn" id="contactBtn" title="Contact">
+          Contact
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span class="bubble"></span>
+    <span id="toastText">Hello</span>
+  </div>
+
+  <script>
+    // ====== Data (safe: no implementation details) ======
+    const TRACKS = [
+      {
+        id: 1,
+        title: "Segmentation That Means Something",
+        subtitle: "Clustering + evaluation guardrails to avoid random segments",
+        tags: ["clustering", "behavior", "evaluation"],
+        length: "3:18",
+        section: "Selected Work",
+        jump: "tracks"
+      },
+      {
+        id: 2,
+        title: "Forecasting for Real Life",
+        subtitle: "Interpretable demand modeling with robust validation",
+        tags: ["forecasting", "XGBoost", "robustness"],
+        length: "3:42",
+        section: "Selected Work",
+        jump: "tracks"
+      },
+      {
+        id: 3,
+        title: "Personalization Experiments (Private Notes)",
+        subtitle: "User intent → selection trade-offs (details intentionally high-level)",
+        tags: ["personalization", "trade-offs", "product"],
+        length: "2:57",
+        section: "Selected Work",
+        jump: "tracks"
+      },
+    ];
+
+    const VIBES = [
+      "Debugging, then going for a walk.",
+      "Tuning features like it’s a playlist.",
+      "Coffee, then a tiny experiment.",
+      "Trying to make clusters less astrology.",
+      "Chasing a clean metric for a fuzzy feeling.",
+      "Shipping something simple that works."
+    ];
+
+    // ====== State ======
+    let currentIdx = 0;
+    let isPlaying = true;
+    let liked = new Set();
+    let progressPct = 0.35; // 35%
+    let volumePct = 0.60;   // 60%
+
+    // ====== Elements ======
+    const trackBody = document.getElementById("trackBody");
+    const trackCount = document.getElementById("trackCount");
+    const nowTitle = document.getElementById("nowTitle");
+    const nowArtist = document.getElementById("nowArtist");
+    const playBtn = document.getElementById("playBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const likeBtn = document.getElementById("likeBtn");
+    const progress = document.getElementById("progress");
+    const progressFill = document.getElementById("progressFill");
+    const timeNow = document.getElementById("timeNow");
+    const timeEnd = document.getElementById("timeEnd");
+    const volbar = document.getElementById("volbar");
+    const volFill = document.getElementById("volFill");
+    const modeToggle = document.getElementById("modeToggle");
+    const vibeLine = document.getElementById("vibeLine");
+    const randomVibeBtn = document.getElementById("randomVibeBtn");
+    const confettiBtn = document.getElementById("confettiBtn");
+    const drawer = document.getElementById("drawer");
+    const drawerTitle = document.getElementById("drawerTitle");
+    const drawerBody = document.getElementById("drawerBody");
+    const drawerClose = document.getElementById("drawerClose");
+    const queueBtn = document.getElementById("queueBtn");
+    const resumeBtn = document.getElementById("resumeBtn");
+    const contactBtn = document.getElementById("contactBtn");
+    const heroEq = document.getElementById("heroEq");
+    const toast = document.getElementById("toast");
+    const toastText = document.getElementById("toastText");
+    const searchInput = document.getElementById("searchInput");
+    const copyEmailBtn = document.getElementById("copyEmailBtn");
+    const copyLinkBtn = document.getElementById("copyLinkBtn");
+
+    // ====== Helpers ======
+    function showToast(msg){
+      toastText.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 1400);
+    }
+
+    function setMode(mode){
+      document.body.setAttribute("data-mode", mode);
+      showToast(mode === "fun" ? "Fun mode on ✨" : "Focus mode on");
+    }
+
+    function toggleMode(){
+      const mode = document.body.getAttribute("data-mode") || "focus";
+      setMode(mode === "focus" ? "fun" : "focus");
+    }
+
+    function scrollToId(id){
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      // nav active state
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      const active = document.querySelector(`.nav-item[data-jump="${id}"]`);
+      if(active) active.classList.add("active");
+    }
+
+    function renderTracks(list){
+      trackBody.innerHTML = "";
+      (list.length < 10 ? "0" : "") + list.length;
+      trackCount.textContent = String(list.length).padStart(2,"0");
+
+      list.forEach((t, idx) => {
+        const tr = document.createElement("tr");
+        tr.dataset.trackId = t.id;
+
+        tr.innerHTML = `
+          <td class="idx">${String(idx+1).padStart(2,"0")}</td>
+          <td>
+            <div class="track-title">
+              <div class="t-art" aria-hidden="true"></div>
+              <div class="t-meta">
+                <strong>Track ${String(idx+1).padStart(2,"0")} — ${t.title}</strong>
+                <span>${t.subtitle}</span>
+              </div>
+            </div>
+          </td>
+          <td style="text-align:right;">
+            <div class="chips">
+              ${t.tags.map(tag => `<span class="chip">${tag}</span>`).join("")}
+            </div>
+          </td>
+          <td class="dur">${t.length}</td>
+        `;
+
+        tr.addEventListener("click", () => {
+          const realIndex = TRACKS.findIndex(x => x.id === t.id);
+          if(realIndex >= 0) {
+            currentIdx = realIndex;
+            setCurrentTrack(true);
+            showToast(`Playing: ${TRACKS[currentIdx].title}`);
+          }
+        });
+
+        trackBody.appendChild(tr);
+      });
+    }
+
+    function setCurrentTrack(autoplay){
+      const t = TRACKS[currentIdx];
+      nowTitle.textContent = `Track ${String(currentIdx+1).padStart(2,"0")} — ${t.title}`;
+      nowArtist.textContent = `Myriam Thabet • ${t.section}`;
+      timeEnd.textContent = t.length;
+
+      // Like state
+      const isLiked = liked.has(t.id);
+      likeBtn.textContent = isLiked ? "♥" : "♡";
+      likeBtn.style.borderColor = isLiked ? "rgba(30,215,96,.45)" : "var(--line)";
+      likeBtn.style.background = isLiked ? "rgba(30,215,96,.10)" : "rgba(255,255,255,.03)";
+
+      // Jump to tracks section on selection (optional)
+      // scrollToId(t.jump);
+
+      if(autoplay){
+        isPlaying = true;
+        updatePlayState();
+      }
+    }
+
+    function updatePlayState(){
+      playBtn.textContent = isPlaying ? "❚❚" : "▶";
+      heroEq.classList.toggle("paused", !isPlaying);
+      showToast(isPlaying ? "Play" : "Pause");
+    }
+
+    function nextTrack(){
+      currentIdx = (currentIdx + 1) % TRACKS.length;
+      setCurrentTrack(true);
+    }
+
+    function prevTrack(){
+      currentIdx = (currentIdx - 1 + TRACKS.length) % TRACKS.length;
+      setCurrentTrack(true);
+    }
+
+    function toggleLike(){
+      const t = TRACKS[currentIdx];
+      if(liked.has(t.id)) liked.delete(t.id);
+      else liked.add(t.id);
+      setCurrentTrack(false);
+      showToast(liked.has(t.id) ? "Liked" : "Unliked");
+    }
+
+    function setProgress(p){
+      progressPct = Math.max(0, Math.min(1, p));
+      progressFill.style.width = `${progressPct * 100}%`;
+      // fake time
+      const total = parseTime(TRACKS[currentIdx].length);
+      const now = Math.floor(total * progressPct);
+      timeNow.textContent = formatTime(now);
+    }
+
+    function setVolume(p){
+      volumePct = Math.max(0, Math.min(1, p));
+      volFill.style.width = `${volumePct * 100}%`;
+      showToast(`Volume ${Math.round(volumePct*100)}%`);
+    }
+
+    function parseTime(mmss){
+      const [m,s] = mmss.split(":").map(Number);
+      return m*60 + s;
+    }
+    function formatTime(sec){
+      const m = Math.floor(sec/60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2,"0")}`;
+    }
+
+    function openDrawer(type){
+      drawer.classList.add("open");
+      if(type === "queue"){
+        drawerTitle.textContent = "Queue";
+        drawerBody.innerHTML = `
+          <div style="color: var(--muted);">
+            Up next: curated highlights.
+          </div>
+          <ul class="list">
+            ${TRACKS.map((t,i)=>`
+              <li>
+                <div>
+                  <b>${String(i+1).padStart(2,"0")} — ${t.title}</b><br/>
+                  <span style="font-family: inherit; color: var(--faint); font-size:12px;">${t.tags.join(" • ")}</span>
+                </div>
+                <span>${t.length}</span>
+              </li>
+            `).join("")}
+          </ul>
+          <div style="margin-top:12px; color: var(--faint); font-size:12px;">
+            Tip: click a track row to play it.
+          </div>
+        `;
+      } else if(type === "playlists"){
+        drawerTitle.textContent = "Playlists";
+        drawerBody.innerHTML = `
+          <div style="color: var(--muted);">
+            Jump around like skipping chapters.
+          </div>
+          <ul class="list">
+            <li><div><b>Home</b></div><span>⌂</span></li>
+            <li><div><b>Tracks</b></div><span>♪</span></li>
+            <li><div><b>Liner Notes</b></div><span>✎</span></li>
+            <li><div><b>Contact</b></div><span>✉</span></li>
+          </ul>
+          <div style="margin-top:12px; color: var(--faint); font-size:12px;">
+            Shortcuts: <span class="kbd">1</span> Home, <span class="kbd">2</span> Tracks, <span class="kbd">3</span> Notes, <span class="kbd">4</span> Contact
+          </div>
+        `;
+        // click-to-jump for list items
+        setTimeout(() => {
+          const items = drawerBody.querySelectorAll(".list li");
+          const ids = ["home","tracks","liner","contact"];
+          items.forEach((li, idx) => li.addEventListener("click", () => {
+            closeDrawer();
+            scrollToId(ids[idx]);
+          }));
+        }, 0);
+      } else if(type === "help"){
+        drawerTitle.textContent = "Shortcuts";
+        drawerBody.innerHTML = `
+          <div style="color: var(--muted); line-height:1.7;">
+            <ul style="margin:8px 0 0; padding-left:18px;">
+              <li><span class="kbd">Space</span> play/pause</li>
+              <li><span class="kbd">N</span> next track</li>
+              <li><span class="kbd">P</span> previous track</li>
+              <li><span class="kbd">L</span> like</li>
+              <li><span class="kbd">Q</span> queue</li>
+              <li><span class="kbd">/</span> playlists drawer</li>
+              <li><span class="kbd">1</span>–<span class="kbd">4</span> jump sections</li>
+              <li><span class="kbd">Esc</span> close drawer</li>
+              <li><span class="kbd">K</span> hidden track</li>
+            </ul>
+          </div>
+        `;
+      }
+    }
+
+    function closeDrawer(){
+      drawer.classList.remove("open");
+    }
+
+    function shuffleVibe(){
+      const v = VIBES[Math.floor(Math.random() * VIBES.length)];
+      vibeLine.textContent = v;
+      showToast("Vibe shuffled");
+    }
+
+    function tinyChaos(){
+      // lightweight "confetti" without canvas
+      for(let i=0;i<24;i++){
+        const d = document.createElement("div");
+        d.style.position = "fixed";
+        d.style.left = (Math.random()*100) + "vw";
+        d.style.top = "-20px";
+        d.style.width = "8px";
+        d.style.height = "8px";
+        d.style.borderRadius = "3px";
+        d.style.background = i%3===0 ? "var(--accent)" : (i%3===1 ? "var(--accent2)" : "rgba(255,255,255,.8)");
+        d.style.opacity = "0.9";
+        d.style.zIndex = 9999;
+        d.style.boxShadow = "0 10px 30px rgba(0,0,0,.35)";
+        document.body.appendChild(d);
+
+        const drift = (Math.random()*2 - 1) * 120;
+        const dur = 900 + Math.random()*800;
+        d.animate([
+          { transform: `translate(0,0) rotate(0deg)` },
+          { transform: `translate(${drift}px, 110vh) rotate(${Math.random()*720}deg)` }
+        ], { duration: dur, easing: "cubic-bezier(.2,.7,.1,1)" });
+
+        setTimeout(()=> d.remove(), dur);
+      }
+      showToast("Tiny chaos deployed ✨");
+    }
+
+    function doSearch(){
+      const q = searchInput.value.trim().toLowerCase();
+      if(!q){
+        renderTracks(TRACKS);
+        showToast("Showing all tracks");
+        return;
+      }
+      const filtered = TRACKS.filter(t =>
+        t.title.toLowerCase().includes(q) ||
+        t.subtitle.toLowerCase().includes(q) ||
+        t.tags.join(" ").toLowerCase().includes(q)
+      );
+      renderTracks(filtered);
+      showToast(`${filtered.length} match(es)`);
+      scrollToId("tracks");
+    }
+
+    // ====== Events ======
+    document.querySelectorAll("[data-jump]").forEach(el => {
+      el.addEventListener("click", () => scrollToId(el.dataset.jump));
+    });
+
+    document.querySelectorAll(".playlist").forEach(el => {
+      el.addEventListener("click", () => {
+        const key = el.dataset.playlist;
+        if(key === "selected") scrollToId("tracks");
+        if(key === "about") scrollToId("liner");
+        if(key === "xp") scrollToId("tracks");
+        if(key === "secret") showToast("Press K 🙂");
+      });
+    });
+
+    modeToggle.addEventListener("click", toggleMode);
+
+    playBtn.addEventListener("click", () => {
+      isPlaying = !isPlaying;
+      updatePlayState();
+    });
+    nextBtn.addEventListener("click", nextTrack);
+    prevBtn.addEventListener("click", prevTrack);
+    likeBtn.addEventListener("click", toggleLike);
+
+    progress.addEventListener("click", (e) => {
+      const rect = progress.getBoundingClientRect();
+      const p = (e.clientX - rect.left) / rect.width;
+      setProgress(p);
+    });
+
+    volbar.addEventListener("click", (e) => {
+      const rect = volbar.getBoundingClientRect();
+      const p = (e.clientX - rect.left) / rect.width;
+      setVolume(p);
+    });
+
+    randomVibeBtn.addEventListener("click", shuffleVibe);
+    confettiBtn.addEventListener("click", tinyChaos);
+
+    queueBtn.addEventListener("click", () => openDrawer("queue"));
+    drawerClose.addEventListener("click", closeDrawer);
+
+    contactBtn.addEventListener("click", () => scrollToId("contact"));
+
+    resumeBtn.addEventListener("click", () => {
+      // Put your resume link here:
+      // Example: "./Myriam_Thabet_Resume.pdf" or a Google Drive share link
+      const url = "./Resume_Thabet_Myriam.pdf";
+      if(url === "#"){
+        showToast("Add resume link in code (resumeBtn click)");
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+    });
+
+    // Search
+    searchInput.addEventListener("keydown", (e) => {
+      if(e.key === "Enter") doSearch();
+      if(e.key === "Escape"){ searchInput.value = ""; renderTracks(TRACKS); showToast("Search cleared"); }
+    });
+
+    // Copy buttons
+    copyEmailBtn.addEventListener("click", async () => {
+      try{
+        await navigator.clipboard.writeText("thabetmyr@gmail.com");
+        showToast("Email copied");
+      } catch {
+        showToast("Copy failed (browser)");
+      }
+    });
+
+    copyLinkBtn.addEventListener("click", async () => {
+      try{
+        await navigator.clipboard.writeText("https://www.linkedin.com/in/myriam-thabet-772a3a229");
+        showToast("LinkedIn copied");
+      } catch {
+        showToast("Copy failed (browser)");
+      }
+    });
+
+    // Keyboard shortcuts
+    window.addEventListener("keydown", (e) => {
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      const typing = tag === "input" || tag === "textarea";
+
+      if(e.key === "Escape"){ closeDrawer(); return; }
+
+      if(typing) {
+        // allow typing; still let Escape handled above
+        return;
+      }
+
+      if(e.key === " "){ e.preventDefault(); isPlaying = !isPlaying; updatePlayState(); }
+      if(e.key.toLowerCase() === "n"){ nextTrack(); }
+      if(e.key.toLowerCase() === "p"){ prevTrack(); }
+      if(e.key.toLowerCase() === "l"){ toggleLike(); }
+      if(e.key.toLowerCase() === "q"){ openDrawer("queue"); }
+      if(e.key === "/"){ openDrawer("playlists"); }
+      if(e.key === "?"){ openDrawer("help"); }
+
+      if(e.key === "1"){ scrollToId("home"); }
+      if(e.key === "2"){ scrollToId("tracks"); }
+      if(e.key === "3"){ scrollToId("liner"); }
+      if(e.key === "4"){ scrollToId("contact"); }
+
+      if(e.key.toLowerCase() === "r"){
+        resumeBtn.click();
+      }
+
+      if(e.key.toLowerCase() === "k"){
+        // hidden track easter egg
+        showToast("Hidden track unlocked: 'K-mode'");
+        setMode("fun");
+        vibeLine.textContent = "K-mode: studying Korean, then shipping a tiny prototype.";
+        tinyChaos();
+      }
+    });
+
+    // Nav active state while scrolling
+    const content = document.getElementById("content");
+    const sectionIds = ["home","tracks","liner","contact"];
+    content.addEventListener("scroll", () => {
+      const tops = sectionIds.map(id => {
+        const el = document.getElementById(id);
+        const r = el.getBoundingClientRect();
+        const containerTop = content.getBoundingClientRect().top;
+        return { id, dist: Math.abs(r.top - containerTop - 18) };
+      });
+      tops.sort((a,b) => a.dist - b.dist);
+      const activeId = tops[0]?.id;
+      if(activeId){
+        document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+        const active = document.querySelector(`.nav-item[data-jump="${activeId}"]`);
+        if(active) active.classList.add("active");
+      }
+    });
+
+    // Fake playback progress ticker
+    setInterval(() => {
+      if(!isPlaying) return;
+      setProgress(progressPct + 0.003);
+      if(progressPct >= 0.999){
+        nextTrack();
+        setProgress(0.05);
+      }
+    }, 240);
+
+    // init
+    renderTracks(TRACKS);
+    setCurrentTrack(true);
+    setProgress(progressPct);
+    setVolume(volumePct);
+    shuffleVibe();
+    showToast("Loaded. Press ? for shortcuts.");
+  </script>
+</body>
+</html>
+
