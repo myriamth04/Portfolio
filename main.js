@@ -532,7 +532,7 @@ function setLyricsHighlight(){
   if(!ps.length) return;
 
   const top = lyricsBody.getBoundingClientRect().top;
-  const targetY = top + lyricsBody.clientHeight * 0.30; // earlier highlight
+  const targetY = top + lyricsBody.clientHeight * 0.10;
 
   let best = null;
   let bestDist = Infinity;
@@ -564,7 +564,7 @@ function lyricsTick(){
     return;
   }
 
-  const px = 0.65 * lyricsSpeed; // faster
+  const px = 2 * lyricsSpeed; // faster
   lyricsBody.scrollTop += px;
 
   setLyricsHighlight();
