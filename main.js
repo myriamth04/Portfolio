@@ -29,7 +29,7 @@ const TRACKS = [
       approach: [
         "Gathered data from APIs and built production tables via Airflow + ClickHouse",
         "Worked with the support manager to define KPIs and challenged metric choices when they didn't match decisions",
-        "Built a Superset dashboard designed around the monthly review flow (not just charts)"
+        "Built a Superset dashboard designed around the Agent Performance Review"
       ],
       impact: [
         "Dashboard is used by managers during monthly reviews",
@@ -564,7 +564,7 @@ function lyricsTick(){
     return;
   }
 
-  const px = 2 * lyricsSpeed; // faster
+  const px = 2 * lyricsSpeed; 
   lyricsBody.scrollTop += px;
 
   setLyricsHighlight();
