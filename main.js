@@ -35,7 +35,7 @@ const TRACKS = [
         "Dashboard is used by managers during monthly reviews",
         "Clear KPI definitions reduced ambiguity and improved follow-up discussions"
       ],
-      links: [{ label: "Resume (context)", href: "#" }]
+    links: [{ label: "Resume (context)", href: "./Resume_Thabet_Myriam.pdf" }]
     }
   },
   {
@@ -63,7 +63,7 @@ const TRACKS = [
         "Defined clusters now being investigated for possible communication targeting",
         "Set up a repeatable workflow to iterate on features and validation"
       ],
-      links: [{ label: "Resume (context)", href: "#" }]
+      links: [{ label: "Resume (context)", href: "./Resume_Thabet_Myriam.pdf" }]
     }
   },
   {
@@ -91,7 +91,7 @@ const TRACKS = [
         "Produced a clear baseline vs improvement narrative",
         "Demonstrated how model choice changes decisions under uncertainty"
       ],
-      links: [{ label: "Resume (context)", href: "#" }]
+      links: [{ label: "Resume (context)", href: "./Resume_Thabet_Myriam.pdf" }]
     }
   },
   {
@@ -147,7 +147,7 @@ const TRACKS = [
         "Random Forest achieved best test accuracy (73%)",
         "Top features: systolic BP, then age and cholesterol"
       ],
-      links: [{ label: "Resume (context)", href: "#" }]
+    links: [{ label: "Resume (context)", href: "./Resume_Thabet_Myriam.pdf" }]
     }
   },
   {
@@ -175,7 +175,7 @@ const TRACKS = [
         "Best F1 around 0.80–0.86; minimally processed text performed better",
         "GRU and LSTM performed similarly; embedding choice had limited impact"
       ],
-      links: [{ label: "Resume (context)", href: "#" }]
+        links: [{ label: "Resume (context)", href: "./Resume_Thabet_Myriam.pdf" }]
     }
   },
 ];
